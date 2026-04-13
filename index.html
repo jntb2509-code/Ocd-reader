@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCD: The Nature & Treatment — Interactive Reader</title>
+  <style>
+    :root {
+      --bg: #f5f6fa;
+      --surface: #ffffff;
+      --surface2: #f0f2f8;
+      --border: #e2e6f0;
+      --primary: #4a6fa5;
+      --primary-dark: #2c4a7a;
+      --primary-light: #e8eef8;
+      --accent: #e8734a;
+      --accent-light: #fdf0eb;
+      --green: #3a9e6e;
+      --green-light: #e8f7f1;
+      --purple: #7c5cbf;
+      --purple-light: #f0ecf9;
+      --text: #1a2035;
+      --text2: #4a5568;
+      --text3: #718096;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: white;
+      padding: 28px 40px 20px;
+      box-shadow: var(--shadow-lg);
+    }
+    header .subtitle { font-family: sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.7; margin-bottom: 6px; }
+    header h1 { font-size: 26px; font-weight: normal; margin-bottom: 4px; }
+    header .byline { font-family: sans-serif; font-size: 13px; opacity: 0.8; }
+    header .progress-bar-wrap { margin-top: 14px; background: rgba(255,255,255,0.2); border-radius: 3px; height: 4px; }
+    header .progress-bar { height: 4px; background: rgba(255,255,255,0.8); border-radius: 3px; transition: width 0.5s; width: 33%; }
+
+    /* ===== TABS ===== */
+    .tabs-row {
+      display: flex;
+      background: white;
+      border-bottom: 2px solid var(--border);
+      padding: 0 40px;
+      gap: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .tab-btn {
+      font-family: sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text3);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 14px 20px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      margin-bottom: -2px;
+    }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-btn .ch-num {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      line-height: 20px;
+      text-align: center;
+      font-size: 11px;
+      margin-right: 8px;
+    }
+    .tab-btn.active .ch-num { background: var(--primary); color: white; }
+
+    /* ===== LAYOUT ===== */
+    .layout {
+      display: flex;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+      gap: 24px;
+    }
+
+    /* ===== SIDEBAR TOC ===== */
+    .toc {
+      width: 230px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 70px;
+      max-height: calc(100vh - 90px);
+      overflow-y: auto;
+    }
+    .toc-title {
+      font-family: sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 10px;
+      padding-left: 12px;
+    }
+    .toc a {
+      display: block;
+      font-family: sans-serif;
+      font-size: 12px;
+      color: var(--text2);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-left: 2px solid transparent;
+      border-radius: 0 4px 4px 0;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .toc a:hover { color: var(--primary); background: var(--primary-light); border-left-color: var(--primary); }
+    .toc a.active { color: var(--primary); background: var(--primary-light); border-left-color: var(--primary); font-weight: 600; }
+    .toc a.h3 { padding-left: 22px; font-size: 11px; }
+
+    /* ===== CONTENT ===== */
+    .content {
+      flex: 1;
+      min-width: 0;
+    }
+    .chapter-panel { display: none; }
+    .chapter-panel.active { display: block; }
+
+    /* Chapter header card */
+    .ch-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      margin-bottom: 28px;
+    }
+    .ch-header .ch-label { font-family: sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; opacity: 0.75; margin-bottom: 8px; }
+    .ch-header h2 { font-size: 28px; font-weight: normal; margin-bottom: 12px; line-height: 1.3; }
+    .ch-header .ch-summary { font-size: 15px; opacity: 0.9; line-height: 1.7; font-family: sans-serif; }
+
+    /* Sections */
+    .section {
+      background: white;
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .section h3 {
+      font-size: 20px;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+    .section h4 {
+      font-size: 15px;
+      color: var(--text);
+      margin: 20px 0 10px;
+      font-family: sans-serif;
+      font-weight: 600;
+    }
+    .section p {
+      font-size: 15px;
+      line-height: 1.85;
+      color: var(--text2);
+      margin-bottom: 14px;
+    }
+
+    /* ===== CALLOUT BOXES ===== */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 18px 0;
+      font-family: sans-serif;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .callout-case { background: var(--accent-light); border-left: 4px solid var(--accent); }
+    .callout-case strong { color: var(--accent); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+    .callout-key { background: var(--primary-light); border-left: 4px solid var(--primary); color: var(--text2); }
+    .callout-key strong { color: var(--primary); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+    .callout-stat { background: var(--green-light); border-left: 4px solid var(--green); }
+    .callout-stat strong { color: var(--green); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+    .callout-warning { background: var(--purple-light); border-left: 4px solid var(--purple); }
+    .callout-warning strong { color: var(--purple); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 5px; }
+
+    /* ===== DEFINITION TABLE ===== */
+    .def-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 18px 0;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+    .def-grid .dg-head {
+      grid-column: 1 / -1;
+      background: var(--primary);
+      color: white;
+      padding: 10px 16px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .def-grid .dg-label {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 12px 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+    }
+    .def-grid .dg-val {
+      padding: 12px 14px;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
+      line-height: 1.6;
+    }
+    .def-grid .dg-label:last-of-type, .def-grid .dg-val:last-of-type { border-bottom: none; }
+
+    /* ===== COMPARISON TABLE ===== */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: sans-serif;
+      font-size: 13.5px;
+      margin: 18px 0;
+    }
+    .compare-table th {
+      background: var(--primary-dark);
+      color: white;
+      padding: 11px 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .compare-table th:first-child { border-radius: 8px 0 0 0; }
+    .compare-table th:last-child { border-radius: 0 8px 0 0; }
+    .compare-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); color: var(--text2); line-height: 1.5; }
+    .compare-table tr:nth-child(even) td { background: var(--surface2); }
+    .compare-table tr:last-child td:first-child { border-radius: 0 0 0 8px; }
+    .compare-table tr:last-child td:last-child { border-radius: 0 0 8px 0; }
+
+    /* ===== OCD CYCLE DIAGRAM ===== */
+    .ocd-cycle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin: 24px 0;
+      flex-wrap: wrap;
+    }
+    .cycle-node {
+      text-align: center;
+      width: 130px;
+    }
+    .cycle-icon {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 8px;
+    }
+    .cycle-label {
+      font-family: sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .cycle-sub { font-family: sans-serif; font-size: 11px; color: var(--text3); }
+    .cycle-arrow {
+      font-size: 22px;
+      color: var(--border);
+      margin: 0 4px;
+      align-self: flex-start;
+      margin-top: 22px;
+    }
+    .cn-obs { background: #fef3e2; }
+    .cn-anx { background: #fee2e2; }
+    .cn-comp { background: #e0f2fe; }
+    .cn-rel { background: #dcfce7; }
+
+    /* ===== STAT BOXES ===== */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+    }
+    .stat-box {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 18px 14px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .stat-box .stat-num {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: sans-serif;
+      line-height: 1;
+    }
+    .stat-box .stat-label { font-family: sans-serif; font-size: 11px; color: var(--text3); margin-top: 6px; line-height: 1.4; }
+
+    /* ===== INSIGHT SPECTRUM ===== */
+    .insight-spectrum {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 18px 0;
+    }
+    .spectrum-bar {
+      height: 20px;
+      border-radius: 10px;
+      background: linear-gradient(to right, var(--green), #f0c040, var(--accent), var(--purple));
+      margin: 10px 0;
+      position: relative;
+    }
+    .spectrum-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: sans-serif;
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 6px;
+    }
+    .spectrum-title { font-family: sans-serif; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+
+    /* ===== OBSESSION TYPES CARDS ===== */
+    .obs-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+    }
+    .obs-card {
+      border-radius: 10px;
+      padding: 16px 16px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .obs-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .obs-card-icon { font-size: 22px; margin-bottom: 8px; }
+    .obs-card-title { font-family: sans-serif; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .obs-card-example {
+      font-family: sans-serif; font-size: 12px; color: var(--text3); font-style: italic; line-height: 1.5;
+      display: none;
+    }
+    .obs-card.expanded .obs-card-example { display: block; }
+    .obs-card-toggle { font-family: sans-serif; font-size: 11px; color: var(--primary); margin-top: 6px; }
+
+    /* ===== FEATURE PILLS ===== */
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .feature-item {
+      display: flex;
+      gap: 14px;
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      align-items: flex-start;
+    }
+    .feature-num {
+      width: 30px; height: 30px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .feature-content h4 { font-family: sans-serif; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+    .feature-content p { font-family: sans-serif; font-size: 13px; color: var(--text2); line-height: 1.6; margin: 0; }
+
+    /* ===== NEUTRALIZATION TYPES ===== */
+    .neutral-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .neutral-item {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 14px 16px;
+      border-left: 4px solid var(--primary);
+      font-family: sans-serif;
+    }
+    .neutral-item h5 { font-size: 13px; color: var(--primary-dark); margin-bottom: 5px; }
+    .neutral-item p { font-size: 12px; color: var(--text2); line-height: 1.5; margin: 0; }
+
+    /* ===== PROS/CONS FOR DSM-5 DEBATE ===== */
+    .debate-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 18px 0;
+    }
+    @media (max-width: 640px) { .debate-cols { grid-template-columns: 1fr; } }
+    .debate-col { border-radius: 10px; padding: 18px; }
+    .debate-for { background: var(--green-light); border: 1px solid #a7e9cb; }
+    .debate-against { background: #fff0f0; border: 1px solid #f7c5c5; }
+    .debate-col h4 { font-family: sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+    .debate-for h4 { color: var(--green); }
+    .debate-against h4 { color: #c0392b; }
+    .debate-col ul { list-style: none; }
+    .debate-col li { font-family: sans-serif; font-size: 12.5px; color: var(--text2); padding: 6px 0 6px 20px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.05); line-height: 1.5; }
+    .debate-col li:last-child { border-bottom: none; }
+    .debate-for li::before { content: "✓"; color: var(--green); position: absolute; left: 0; font-weight: 700; }
+    .debate-against li::before { content: "✗"; color: #c0392b; position: absolute; left: 0; font-weight: 700; }
+
+    /* ===== WORRY vs OBS TABLE ===== */
+    .multi-col-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: sans-serif;
+      font-size: 13px;
+      margin: 18px 0;
+    }
+    .multi-col-table th { background: var(--primary-dark); color: white; padding: 10px 14px; text-align: left; }
+    .multi-col-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--text2); line-height: 1.5; vertical-align: top; }
+    .multi-col-table tr:nth-child(even) td { background: var(--surface2); }
+
+    /* ===== ERS POINTS ===== */
+    .pts-list {
+      list-style: none;
+      margin: 12px 0;
+    }
+    .pts-list li {
+      font-family: sans-serif;
+      font-size: 14px;
+      color: var(--text2);
+      padding: 8px 0 8px 28px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+      line-height: 1.6;
+    }
+    .pts-list li:last-child { border-bottom: none; }
+    .pts-list li::before {
+      content: attr(data-n);
+      position: absolute;
+      left: 0;
+      width: 20px; height: 20px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      top: 10px;
+    }
+
+    /* ===== GENDER DIFF ===== */
+    .gender-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 18px 0;
+    }
+    .gc { border-radius: 10px; padding: 18px; font-family: sans-serif; }
+    .gc-m { background: #e8f4fd; border: 1px solid #b3d7f0; }
+    .gc-f { background: #fce8f3; border: 1px solid #f0b3d7; }
+    .gc h4 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+    .gc-m h4 { color: #1a6fa5; }
+    .gc-f h4 { color: #c0395c; }
+    .gc ul { list-style: none; }
+    .gc li { font-size: 12.5px; color: var(--text2); padding: 4px 0 4px 16px; position: relative; }
+    .gc li::before { content: "•"; position: absolute; left: 4px; }
+
+    /* ===== THOUGHT SUPPRESSION ===== */
+    .suppression-diagram {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 18px 0;
+      text-align: center;
+    }
+    .supp-steps {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .supp-step {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: sans-serif;
+      font-size: 12px;
+      color: var(--text2);
+      text-align: center;
+      width: 120px;
+    }
+    .supp-step strong { display: block; color: var(--text); font-size: 13px; margin-bottom: 3px; }
+    .supp-arrow { font-size: 18px; color: var(--text3); }
+
+    /* ===== SCROLL REVEAL ===== */
+    .section { opacity: 0; transform: translateY(14px); transition: opacity 0.4s, transform 0.4s; }
+    .section.visible { opacity: 1; transform: none; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .toc { display: none; }
+      .layout { padding: 0 12px; }
+    }
+    @media (max-width: 600px) {
+      header { padding: 20px; }
+      .tabs-row { padding: 0 10px; overflow-x: auto; }
+      .section { padding: 20px 18px; }
+      .ch-header { padding: 24px 20px; }
+      .gender-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="subtitle">Cognitive-Behavioral Therapy for OCD and Its Subtypes · David A. Clark (2020)</div>
+  <h1>The Nature of OCD — Interactive Reader</h1>
+  <div class="byline">Chapters 1–3 · Diagnosis · Obsessions · Compulsions</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+</header>
+
+<div class="tabs-row">
+  <button class="tab-btn active" onclick="switchTab(1, this)">
+    <span class="ch-num">1</span>Diagnosis, Phenomenology &amp; Comorbidity
+  </button>
+  <button class="tab-btn" onclick="switchTab(2, this)">
+    <span class="ch-num">2</span>Obsessions, Intrusions &amp; Correlates
+  </button>
+  <button class="tab-btn" onclick="switchTab(3, this)">
+    <span class="ch-num">3</span>Compulsions, Neutralization &amp; Control
+  </button>
+</div>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR TOC ===== -->
+  <nav class="toc" id="tocNav">
+    <!-- dynamically filled by JS -->
+  </nav>
+
+  <!-- ===== CONTENT ===== -->
+  <div class="content">
+
+    <!-- ============================================================ -->
+    <!-- CHAPTER 1                                                     -->
+    <!-- ============================================================ -->
+    <div class="chapter-panel active" id="ch1">
+
+      <div class="ch-header">
+        <div class="ch-label">Chapter 1</div>
+        <h2>Diagnosis, Phenomenology, and Comorbidity</h2>
+        <div class="ch-summary">OCD has long been one of the most puzzling disorders in clinical psychology — a paradox of insight and helplessness. This chapter covers the diagnostic criteria, epidemiology, phenomenology, and comorbid conditions that shape our understanding of the disorder.</div>
+      </div>
+
+      <!-- OCD Cycle -->
+      <div class="section" id="s1-cycle">
+        <h3>The OCD Paradox</h3>
+        <p>Individuals with OCD are <em>tormented by repetitive thoughts</em> about dreaded possibilities they recognize as exaggerated — yet feel helpless to stop carrying out stereotypic rituals. This creates a self-perpetuating cycle:</p>
+
+        <div class="ocd-cycle">
+          <div class="cycle-node">
+            <div class="cycle-icon cn-obs">💭</div>
+            <div class="cycle-label">Obsession</div>
+            <div class="cycle-sub">Intrusive thought, image, or urge</div>
+          </div>
+          <div class="cycle-arrow">→</div>
+          <div class="cycle-node">
+            <div class="cycle-icon cn-anx">😰</div>
+            <div class="cycle-label">Anxiety</div>
+            <div class="cycle-sub">Distress, guilt, fear, disgust</div>
+          </div>
+          <div class="cycle-arrow">→</div>
+          <div class="cycle-node">
+            <div class="cycle-icon cn-comp">🔁</div>
+            <div class="cycle-label">Compulsion</div>
+            <div class="cycle-sub">Ritual or neutralizing behavior</div>
+          </div>
+          <div class="cycle-arrow">→</div>
+          <div class="cycle-node">
+            <div class="cycle-icon cn-rel">😮‍💨</div>
+            <div class="cycle-label">Relief</div>
+            <div class="cycle-sub">Temporary — strengthens the cycle</div>
+          </div>
+        </div>
+
+        <div class="callout callout-case">
+          <strong>Case Study — Louise</strong>
+          A 37-year-old mother whose contamination fear began at age 14 following a lice outbreak. Now obsessed with contracting cancer through contact with objects others have touched. Scrubs hands until they bleed, carries antibacterial wipes everywhere. Despite medication and conventional counseling, symptoms continue unabated — eventually leading to comorbid depression and suicidal ideation.
+        </div>
+      </div>
+
+      <!-- DSM-5 Diagnosis -->
+      <div class="section" id="s1-dsm">
+        <h3>DSM-5 Diagnosis of OCD</h3>
+        <p>The essential features of OCD are the repeated occurrence of personally distressing or functionally impairing <strong>obsessions and/or compulsions</strong>.</p>
+
+        <div class="def-grid">
+          <div class="dg-head">Core DSM-5 Definitions</div>
+          <div class="dg-label">Obsessions</div>
+          <div class="dg-val">Unwanted, unacceptable, and repetitive intrusive thoughts, images, or urges that are resisted and difficult to control. Content often focuses on contamination, aggression, doubt, unacceptable sexual acts, religion, or symmetry.</div>
+          <div class="dg-label">Compulsions</div>
+          <div class="dg-val">Repetitive behaviors or mental acts associated with subjective urgency, aimed at preventing a dreaded outcome or reducing distress caused by an obsession. Generally accompanied by a strong urge and diminished sense of voluntary control.</div>
+        </div>
+
+        <h4>Insight Specifiers</h4>
+        <div class="insight-spectrum">
+          <div class="spectrum-title">Continuum of Insight in OCD (DSM-5)</div>
+          <div class="spectrum-bar"></div>
+          <div class="spectrum-labels">
+            <span>Good/Fair Insight<br><em>Recognizes unrealistic nature</em></span>
+            <span style="text-align:center">Poor Insight<br><em>Concerns mostly likely realistic</em></span>
+            <span style="text-align:right">Absent/Delusional<br><em>Strong conviction in veracity</em></span>
+          </div>
+        </div>
+        <p>DSM-5 also added a <strong>tic-related specifier</strong>, recognizing that individuals with a history of tic disorder differ in symptoms, comorbidity, course, and family history.</p>
+      </div>
+
+      <!-- DSM-5 Reclassification Debate -->
+      <div class="section" id="s1-reclassification">
+        <h3>The Reclassification Debate</h3>
+        <p>DSM-5 moved OCD from the Anxiety Disorders category to a new <strong>"Obsessive-Compulsive and Related Disorders"</strong> category, alongside BDD, hoarding disorder, trichotillomania, and excoriation disorder. This was highly controversial.</p>
+
+        <div class="debate-cols">
+          <div class="debate-col debate-for">
+            <h4>Arguments FOR Reclassification</h4>
+            <ul>
+              <li>Symptom similarity with BDD and hoarding disorder</li>
+              <li>Common core of repetitive/compulsive behavior on a continuum with impulsivity</li>
+              <li>Similar clinical course, age of onset, and family history</li>
+              <li>Shared frontal-striatal neural circuitry (vs. amygdala in anxiety disorders)</li>
+              <li>Similar treatment response to SSRIs</li>
+            </ul>
+          </div>
+          <div class="debate-col debate-against">
+            <h4>Arguments AGAINST Reclassification</h4>
+            <ul>
+              <li>"Compulsivity" as core feature ignores the anxiety-relief function of rituals</li>
+              <li>Little empirical evidence impulsivity and compulsivity lie on same continuum</li>
+              <li>Repetitive behavior appears in many disorders — lacks diagnostic specificity</li>
+              <li>Higher comorbidity with some anxiety disorders than with spectrum disorders</li>
+              <li>ERP works for OCD but not for TTM or excoriation disorder</li>
+              <li>Neural circuitry evidence is inconsistent</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout callout-key">
+          <strong>Author's Position</strong>
+          Clark maintains that OCD is best understood as an anxiety disorder. The basic DSM-5 diagnostic criteria can be accepted without agreeing to its diagnostic segregation.
+        </div>
+      </div>
+
+      <!-- Epidemiology -->
+      <div class="section" id="s1-epidemiology">
+        <h3>Epidemiology and Demographics</h3>
+
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="stat-num">1–2%</div>
+            <div class="stat-label">Lifetime prevalence in the general population</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">28%</div>
+            <div class="stat-label">Report obsessions/compulsions at some point (NCS-R)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">19.5</div>
+            <div class="stat-label">Mean age of onset (years)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">65%</div>
+            <div class="stat-label">Develop disorder before age 25</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num">60.8%</div>
+            <div class="stat-label">Report significant life event in the year before onset</div>
+          </div>
+        </div>
+
+        <h4>Gender Differences</h4>
+        <div class="gender-cards">
+          <div class="gc gc-m">
+            <h4>Men</h4>
+            <ul>
+              <li>Earlier age of onset</li>
+              <li>More sexual and symmetry obsessions</li>
+              <li>Higher rates of exactness obsessions</li>
+            </ul>
+          </div>
+          <div class="gc gc-f">
+            <h4>Women</h4>
+            <ul>
+              <li>Slightly higher overall incidence (53%)</li>
+              <li>More washing and cleaning rituals</li>
+              <li>More aggression and victimization obsessions</li>
+              <li>Higher risk during pregnancy and postpartum</li>
+            </ul>
+          </div>
+        </div>
+
+        <h4>Family Involvement</h4>
+        <p>Family members often make <strong>accommodations</strong> for the person's rituals, which increases family stress and dysfunction. A meta-analysis found greater OCD symptom severity is associated with more family accommodation — regardless of gender, age, or comorbidity. This creates a vicious cycle: accommodation → symptom escalation → more accommodation.</p>
+      </div>
+
+      <!-- Quality of Life -->
+      <div class="section" id="s1-qol">
+        <h3>Quality of Life and Suicidality</h3>
+        <p>OCD has a significant negative impact on social and occupational functioning. Individuals with OCD show significantly lower QOL scores in work, social, emotional, and family domains compared to healthy controls.</p>
+
+        <div class="callout callout-warning">
+          <strong>Suicidality Risk</strong>
+          Two large community studies found that <strong>36–63%</strong> of individuals with OCD reported suicidal thoughts at some point during their life, and <strong>11–26%</strong> reported lifetime suicide attempts. Presence of sexual/religious obsessions and comorbid major depression increase suicidal risk. Clinicians must assess suicidal risk — especially in severe OCD comorbid with depression.
+        </div>
+      </div>
+
+      <!-- Course & Outcome -->
+      <div class="section" id="s1-course">
+        <h3>Course and Outcome</h3>
+        <h4>Treatment Seeking</h4>
+        <p>Most individuals with OCD delay seeking treatment for <strong>2 to 7 years</strong> (median: 9 years in one study). Those with milder symptoms are less likely to seek treatment. Even when treatment utilization is high, less than one-third of individuals with severe OCD receive treatment specifically for OCD.</p>
+        <p>The low level of treatment seeking reflects a broader dissemination problem: even those with severe OCD may not recognize that disorder-specific treatment is needed.</p>
+
+        <div class="callout callout-stat">
+          <strong>Natural Course</strong>
+          OCD tends to be a chronic, waxing-and-waning disorder. Rates may decline with age. The average length of the disorder is about 8¾ years (NCS-R). A substantial number experience gradual onset, while for others onset is acute, often in response to critical life events.
+        </div>
+      </div>
+
+    </div><!-- /ch1 -->
+
+
+    <!-- ============================================================ -->
+    <!-- CHAPTER 2                                                     -->
+    <!-- ============================================================ -->
+    <div class="chapter-panel" id="ch2">
+
+      <div class="ch-header">
+        <div class="ch-label">Chapter 2</div>
+        <h2>Obsessions, Intrusions, and Their Correlates</h2>
+        <div class="ch-summary">What distinguishes a clinical obsession from ordinary unwanted thoughts? This chapter explores the nature of obsessional thinking — its content, core features, and relationship to normal intrusive thoughts — and how to differentiate obsessions from worry and rumination.</div>
+      </div>
+
+      <!-- Obsessional Content -->
+      <div class="section" id="s2-content">
+        <h3>Obsessional Content</h3>
+        <p>Most individuals with OCD experience <strong>multiple obsessions</strong> (50–99% across studies). Obsessional content is highly individualistic, shaped by personal experience, culture, and critical life events. The primary obsessional content can also <strong>change over time</strong>.</p>
+
+        <p>Click any card to see clinical examples:</p>
+        <div class="obs-types">
+          <div class="obs-card" onclick="toggleObsCard(this)" style="background:#fff8f0; border-color:#fde3c0;">
+            <div class="obs-card-icon">🦠</div>
+            <div class="obs-card-title">Dirt / Contamination</div>
+            <div class="obs-card-example">"Maybe I've contaminated myself by touching these library books." / "I'm sitting in a public place contaminated by other people's germs, so I could get sick."</div>
+            <div class="obs-card-toggle">▸ See examples</div>
+          </div>
+          <div class="obs-card" onclick="toggleObsCard(this)" style="background:#fff0f0; border-color:#ffc5c5;">
+            <div class="obs-card-icon">⚔️</div>
+            <div class="obs-card-title">Harm / Injury to Self or Others</div>
+            <div class="obs-card-example">"Have I accidentally killed someone?" / "There's an image of taking a knife and stabbing the person next to me." / "Did I accidentally run over someone with the car?"</div>
+            <div class="obs-card-toggle">▸ See examples</div>
+          </div>
+          <div class="obs-card" onclick="toggleObsCard(this)" style="background:#fffff0; border-color:#f5e97a;">
+            <div class="obs-card-icon">🤔</div>
+            <div class="obs-card-title">Pathological Doubt</div>
+            <div class="obs-card-example">"Did I touch these items in the store and damage them?" / "Did I make a mistake, or did I do this completely?" / "Did I turn the stove burners completely off?"</div>
+            <div class="obs-card-toggle">▸ See examples</div>
+          </div>
+          <div class="obs-card" onclick="toggleObsCard(this)" style="background:#f0f8ff; border-color:#b3d7f7;">
+            <div class="obs-card-icon">📐</div>
+            <div class="obs-card-title">Symmetry / Exactness</div>
+            <div class="obs-card-example">"If I am using the right side of my body too much, I must compensate." / "The number 14 is unlucky and must be avoided." / "I don't understand completely what I just read."</div>
+            <div class="obs-card-toggle">▸ See examples</div>
+          </div>
+          <div class="obs-card" onclick="toggleObsCard(this)" style="background:#fff0f8; border-color:#f7c5e0;">
+            <div class="obs-card-icon">🔞</div>
+            <div class="obs-card-title">Unacceptable Sexual Thoughts</div>
+            <div class="obs-card-example">"Did I deliberately touch a child for sexual purposes?" / "Am I sexually attracted to children?" / [A young heterosexual woman anxious she might be aroused by women]</div>
+            <div class="obs-card-toggle">▸ See examples</div>
+          </div>
+          <div class="obs-card" onclick="toggleObsCard(this)" style="background:#f5f0ff; border-color:#c5b7f0;">
+            <div class="obs-card-icon">🙏</div>
+            <div class="obs-card-title">Religious / Scrupulosity</div>
+            <div class="obs-card-example">"Did I displease God?" / [Woman has intrusive thoughts of cursing God while reading the Bible] / "I have not made the right decision honoring to God and am condemned to hell."</div>
+            <div class="obs-card-toggle">▸ See examples</div>
+          </div>
+          <div class="obs-card" onclick="toggleObsCard(this)" style="background:#f0fff5; border-color:#a7f0c5;">
+            <div class="obs-card-icon">🤒</div>
+            <div class="obs-card-title">Somatic / Health Concerns</div>
+            <div class="obs-card-example">"I have repeated images of vomiting." / "I have recurrent thoughts that I'm getting sick."</div>
+            <div class="obs-card-toggle">▸ See examples</div>
+          </div>
+        </div>
+
+        <h4>Cultural Influences</h4>
+        <p>While contamination, harm/aggression, and pathological doubt are universal across cultures, there are significant differences in other types. <strong>Religious obsessions and concerns about impurity</strong> are far more common in Eastern religious cultures. Multinational studies across 11 countries show the largest cross-cultural differences involve sex, religion, and harm intrusions.</p>
+
+        <h4>Trauma-Related Obsessions</h4>
+        <p>Life experiences, especially severe negative events or traumas, can influence the content of obsessional ideation and onset of OCD. One review concluded that "the impact of trauma on OCD is irrefutable" (Dykshoorn, 2014), though the etiological significance of environmental factors remains uncertain.</p>
+      </div>
+
+      <!-- Core Features -->
+      <div class="section" id="s2-features">
+        <h3>Core Features of Obsessions</h3>
+        <p>Contemporary definitions emphasize four core features. None is necessary or sufficient alone, but together they identify the obsessive quality of repetitive thought:</p>
+
+        <div class="features-list">
+          <div class="feature-item">
+            <div class="feature-num">1</div>
+            <div class="feature-content">
+              <h4>Intrusiveness</h4>
+              <p>The thought, image, or impulse repeatedly enters consciousness in an <strong>unintended, involuntary manner</strong> — against one's will. Even when an obsession can be tolerated when generated voluntarily in therapy, the same obsession is experienced as intolerable when it appears as a sudden mental intrusion in daily life.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">2</div>
+            <div class="feature-content">
+              <h4>Unacceptability</h4>
+              <p>The intrusion is considered <strong>unwanted, undesired, or morally disapproved</strong>. An intrusion may be unacceptable because it: (1) threatens core values, (2) diminishes self-worth, or (3) is associated with high subjective distress. Appraisals of low probability but high disapproval are associated with greater use of maladaptive escape/avoidance strategies.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">3</div>
+            <div class="feature-content">
+              <h4>Subjective Resistance</h4>
+              <p>A strong urge to <strong>ignore, suppress, or neutralize</strong> the obsession through avoidance, mental control strategies, or compulsive rituals. The desire to rid one's mind of the obsession is fueled by the belief that undesirable consequences will occur if not successfully terminated.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num">4</div>
+            <div class="feature-content">
+              <h4>Perceived Uncontrollability</h4>
+              <p>An evaluation of <strong>diminished control</strong> over the obsession that is considered unacceptable and threatening. Despite strong motivation to resist, individuals with OCD perceive their efforts at control as short-lived and inadequate. Notably, research suggests individuals with OCD do not exhibit an actual decrement in control ability — the critical feature is the <em>perception</em> of uncontrollability.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Normal vs Abnormal -->
+      <div class="section" id="s2-normal-abnormal">
+        <h3>Normal vs. Abnormal Obsessions</h3>
+        <p>In a landmark 1978 study, Rachman and de Silva found that <strong>84% of nonclinical participants</strong> reported unwanted cognitive intrusions qualitatively similar in form and content to clinical obsessions. This challenged the categorical view of OCD.</p>
+
+        <div class="callout callout-key">
+          <strong>The Continuity Hypothesis</strong>
+          CBT models adhere to the view that clinical and nonclinical differences in obsessive-compulsive symptoms are a <strong>matter of degree rather than kind</strong>. Normal intrusive thoughts develop into pathological obsessions when individuals misinterpret them as a significant personal threat requiring neutralization (Rachman, 2003; Salkovskis, 1985).
+        </div>
+
+        <table class="compare-table">
+          <thead>
+            <tr><th>Dimension</th><th>Normal Obsessions</th><th>Abnormal / Clinical Obsessions</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Frequency</td><td>Less frequent</td><td>More frequent, persistent</td></tr>
+            <tr><td>Distress</td><td>Less unacceptable / distressing</td><td>More unacceptable / distressing</td></tr>
+            <tr><td>Guilt</td><td>Little associated guilt</td><td>Significant feelings of guilt</td></tr>
+            <tr><td>Resistance</td><td>Less resistance to the intrusion</td><td>Strong resistance to the intrusion</td></tr>
+            <tr><td>Control</td><td>Some perceived control</td><td>Diminished perceived control</td></tr>
+            <tr><td>Personal meaning</td><td>Considered meaningless, irrelevant to self</td><td>Considered highly meaningful, threatening core values</td></tr>
+            <tr><td>Neutralization</td><td>Less associated neutralizing</td><td>Strong urge to neutralize / perform compulsions</td></tr>
+            <tr><td>Reality basis</td><td>Linked to here-and-now context</td><td>More often lacks a reality basis</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Differentiating from Worry & Rumination -->
+      <div class="section" id="s2-differentiation">
+        <h3>Differentiating from Worry, Rumination, and Automatic Thoughts</h3>
+        <p>When individuals present with unwanted, persistent, repetitive negative thoughts, it can be difficult to determine if it is an obsession or another form of maladaptive thought. The following comparison is critical for clinical case formulation:</p>
+
+        <table class="multi-col-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Obsession</th>
+              <th>Worry</th>
+              <th>Rumination</th>
+              <th>Negative Auto. Thoughts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Focus</strong></td>
+              <td>Specific feared harm / repugnant content</td>
+              <td>Future events / real-life concerns</td>
+              <td>Past events / losses</td>
+              <td>Self, world, future (Beckian triad)</td>
+            </tr>
+            <tr>
+              <td><strong>Ego-syntonic?</strong></td>
+              <td>Ego-dystonic (alien, unwanted)</td>
+              <td>Mostly ego-syntonic (useful)</td>
+              <td>Ego-syntonic</td>
+              <td>Often ego-syntonic</td>
+            </tr>
+            <tr>
+              <td><strong>Content</strong></td>
+              <td>Repugnant, unacceptable themes</td>
+              <td>Realistic negative outcomes</td>
+              <td>Self-critical, past-focused</td>
+              <td>Automatic, schema-consistent</td>
+            </tr>
+            <tr>
+              <td><strong>Primary emotion</strong></td>
+              <td>Fear, disgust, guilt</td>
+              <td>Anxiety, apprehension</td>
+              <td>Sadness, hopelessness</td>
+              <td>Varies by disorder</td>
+            </tr>
+            <tr>
+              <td><strong>Response</strong></td>
+              <td>Compulsions / neutralization</td>
+              <td>Reassurance / problem solving</td>
+              <td>Passive self-reflection</td>
+              <td>Mood-congruent behavior</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-key">
+          <strong>Clinical Implication</strong>
+          Determining which type of cognitive disturbance is most relevant depends on the context and functional characteristics of the thought process. Most individuals with OCD present with a mix of obsessive thinking, worry, rumination, and self-criticalness.
+        </div>
+      </div>
+
+    </div><!-- /ch2 -->
+
+
+    <!-- ============================================================ -->
+    <!-- CHAPTER 3                                                     -->
+    <!-- ============================================================ -->
+    <div class="chapter-panel" id="ch3">
+
+      <div class="ch-header">
+        <div class="ch-label">Chapter 3</div>
+        <h2>Compulsions, Neutralization, and Control</h2>
+        <div class="ch-summary">Any response to an obsession can become a compulsion if it occurs repeatedly to neutralize the obsession, reduce distress, or prevent its feared outcome. This chapter explores behavioral and mental compulsions, reassurance seeking, avoidance, neutralization, and thought suppression.</div>
+      </div>
+
+      <!-- Behavioral Compulsions -->
+      <div class="section" id="s3-behavioral">
+        <h3>Behavioral Compulsions</h3>
+        <p>Compulsions are <em>"perseverative, repetitive actions that are excessive and inappropriate to a situation"</em> (Berlin &amp; Hollander, 2014). They can range from higher-order cognitive responses (praying, mentally rehearsing) to simple motor responses (tapping, checking, washing).</p>
+
+        <div class="callout callout-case">
+          <strong>Case Study — Charles</strong>
+          A fastidious man with compulsive tidying behavior. He had a strong urge to arrange anything that looked messy or out of place and couldn't relax until everything felt "just right." His behavior met multiple criteria for clinical compulsions: (1) strong urge to engage, (2) neutralization function ("just right" feeling), (3) varying insight, (4) highly repetitive and stereotypic pattern, (5) impaired response inhibition, and (6) cognitive inflexibility.
+        </div>
+
+        <h4>Defining Features of Clinical Compulsions</h4>
+        <div class="features-list">
+          <div class="feature-item">
+            <div class="feature-num" style="background:var(--accent)">●</div>
+            <div class="feature-content">
+              <h4>Harm Avoidance (not Reward)</h4>
+              <p>The essence of a clinical compulsion is the intense urge to perform the response, which serves a <strong>harm avoidance function</strong> — in contrast to the reward-seeking function in impulse disorders like kleptomania or pathological gambling.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num" style="background:var(--accent)">●</div>
+            <div class="feature-content">
+              <h4>Functional Relationship with Obsessions</h4>
+              <p>Obsessions and compulsions are <strong>functionally related</strong> in most cases — the obsession elicits anxiety, which the compulsion temporarily relieves. Factor-analytic studies confirm they load on the same factors.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num" style="background:var(--accent)">●</div>
+            <div class="feature-content">
+              <h4>Insight and Resistance</h4>
+              <p>Insight may provoke subjective resistance so that the individual delays the compulsion — but eventually the urge becomes so strong the person gives in. Many individuals <strong>eventually abandon resistance</strong>, showing only slight or no attempt to resist.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mental Compulsions -->
+      <div class="section" id="s3-mental">
+        <h3>Mental Compulsions</h3>
+        <p>Mental compulsions (also called <em>covert compulsions</em> or <em>cognitive neutralization</em>) are internal, repetitive responses triggered by an obsession, with a strongly felt urge to think through some aspect of the obsession.</p>
+
+        <div class="neutral-grid">
+          <div class="neutral-item">
+            <h5>Mental Repetition</h5>
+            <p>Repeating specific words, images, or numbers internally to "cancel" the obsession</p>
+          </div>
+          <div class="neutral-item">
+            <h5>Prayer / Phrases</h5>
+            <p>Repetition of special prayers, songs, or protective phrases</p>
+          </div>
+          <div class="neutral-item">
+            <h5>Mental Counting</h5>
+            <p>Counting to specific numbers or in specific sequences</p>
+          </div>
+          <div class="neutral-item">
+            <h5>Mental List Making</h5>
+            <p>Compulsively reviewing lists of items or memories</p>
+          </div>
+          <div class="neutral-item">
+            <h5>Mental Reviewing</h5>
+            <p>Questioning, analyzing, or mentally replaying events or decisions</p>
+          </div>
+        </div>
+
+        <div class="callout callout-stat">
+          <strong>Prevalence of Mental Compulsions</strong>
+          In a sample of 225 adults with OCD, 12.9% reported mental rituals as their <em>primary</em> compulsion, and 20.4% as a current symptom. Only 50.7% reported no history of mental rituals. A multicenter Brazilian study found 56.7% reported a mental compulsion.
+        </div>
+      </div>
+
+      <!-- ERS -->
+      <div class="section" id="s3-ers">
+        <h3>Excessive Reassurance Seeking (ERS)</h3>
+        <p>ERS is a common response strategy found with distressing obsessions (41% of one OCD sample used direct reassurance seeking). Rachman (2002) described ERS as a <strong>"checking compulsion by proxy"</strong> — repeatedly seeking the same reassurance from others, looking for the same specific answer to obtain relief from anxiety and heightened responsibility.</p>
+
+        <div class="callout callout-case">
+          <strong>Clinical Example — ERS in Action</strong>
+          A middle-aged man with a sexual obsession repeatedly asked his wife whether sex with a former boyfriend (from 15 years prior) was better than with him. His interrogations were lengthy, accusatory, and often brought his wife to tears. Rarely did her response produce more than a fleeting sense of relief — so the questioning continued until she had to escape. The obsession was recognized as absurd, yet the urge was irresistible.
+        </div>
+
+        <h4>Key Characteristics of ERS in OCD</h4>
+        <ol class="pts-list">
+          <li data-n="1">ERS produces only <strong>transient relief</strong> from anxiety — distress returns and the urge to seek reassurance increases</li>
+          <li data-n="2">Individuals seek a <strong>specific response</strong>, even if vaguely articulated, that they believe will diminish the obsessional concern</li>
+          <li data-n="3">The compulsive urge associated with ERS can be <strong>as strong as any compulsion</strong></li>
+          <li data-n="4">ERS has a significant <strong>negative emotional effect</strong> on family, friends, and caregivers from whom it is sought</li>
+        </ol>
+
+        <div class="callout callout-key">
+          <strong>Treatment Implication</strong>
+          ERS must be included in the cognitive case conceptualization and targeted for treatment. Family members may need coaching. Therapists must be vigilant for subtle efforts to extract reassurance in the therapy session itself.
+        </div>
+      </div>
+
+      <!-- Avoidance -->
+      <div class="section" id="s3-avoidance">
+        <h3>Avoidance</h3>
+        <p>Avoidance involves any effort intended to avert a perceived trigger of the obsession and its associated distress. It is often the <strong>first choice</strong> of action individuals use to manage their OCD symptoms.</p>
+
+        <p>Avoidance contributes to the persistence of OCD in two ways:</p>
+        <div class="features-list">
+          <div class="feature-item">
+            <div class="feature-num" style="background:var(--green)">1</div>
+            <div class="feature-content">
+              <h4>Prevents Habituation</h4>
+              <p>By preventing prolonged exposure to obsessional fears, avoidance prevents the natural anxiety reduction process from occurring.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-num" style="background:var(--green)">2</div>
+            <div class="feature-content">
+              <h4>Blocks Disconfirming Evidence</h4>
+              <p>Avoidance is a safety behavior that deprives individuals of the opportunity to experience evidence <em>against</em> the threatening nature of the obsession (Salkovskis, 1996).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Neutralization -->
+      <div class="section" id="s3-neutralization">
+        <h3>Neutralization</h3>
+        <p>Neutralization is <em>"any voluntary, effortful cognitive or behavioral act that is directed at removing, preventing, or attenuating the thought or the associated discomfort"</em> (Freeston &amp; Ladouceur, 1997). It includes but extends beyond compulsions.</p>
+
+        <div class="def-grid">
+          <div class="dg-head">Forms of Neutralization in OCD</div>
+          <div class="dg-label">Overt compulsions</div>
+          <div class="dg-val">Washing, checking, ordering, repeating behaviors</div>
+          <div class="dg-label">Reassurance seeking</div>
+          <div class="dg-val">Asking others for reassurance or confirmation</div>
+          <div class="dg-label">Mental checking</div>
+          <div class="dg-val">Mentally reviewing past actions or decisions</div>
+          <div class="dg-label">Thought stopping</div>
+          <div class="dg-val">Actively trying to interrupt the obsessive thought</div>
+          <div class="dg-label">Distraction</div>
+          <div class="dg-val">Redirecting attention away from the obsession</div>
+          <div class="dg-label">Rationalization</div>
+          <div class="dg-val">Reasoning away the obsession ("it's not logical")</div>
+          <div class="dg-label">Worry</div>
+          <div class="dg-val">Problem-solving or anticipating feared outcomes</div>
+          <div class="dg-label">Self-punishment</div>
+          <div class="dg-val">Criticizing oneself for having the obsession</div>
+        </div>
+
+        <h4>Why Neutralization Maintains OCD</h4>
+        <p>Experimental evidence confirms that neutralization causes an <strong>immediate reduction</strong> in anxiety — but a greater return of anxiety and stronger urge to neutralize occurs after a 30-minute delay. The temporary relief <em>reinforces</em> the compulsive cycle and enhances the perceived significance of the obsession.</p>
+
+        <div class="callout callout-warning">
+          <strong>The Paradox of Neutralization</strong>
+          Although many neutralization strategies appear adaptive, they are problematic because their aim is to counter the negative effects of the obsession — thereby enhancing its meaning and significance. This is why even seemingly "reasonable" coping strategies can perpetuate OCD.
+        </div>
+      </div>
+
+      <!-- Thought Suppression -->
+      <div class="section" id="s3-suppression">
+        <h3>Thought Suppression and Mental Control</h3>
+        <p>A significant area of research has focused on deliberate attempts to suppress unwanted thoughts. Wegner's classic "white bear" paradigm (1989) demonstrated a paradoxical effect: deliberate suppression of a target thought can lead to a subsequent <strong>increase</strong> in its frequency.</p>
+
+        <div class="suppression-diagram">
+          <div class="spectrum-title">The Ironic Process Model of Thought Suppression</div>
+          <div class="supp-steps">
+            <div class="supp-step">
+              <strong>Deliberate Suppression</strong>
+              "Don't think about it"
+            </div>
+            <div class="supp-arrow">→</div>
+            <div class="supp-step">
+              <strong>Operating Process</strong>
+              Monitors for the thought
+            </div>
+            <div class="supp-arrow">→</div>
+            <div class="supp-step">
+              <strong>Ironic Effect</strong>
+              Thought becomes more accessible
+            </div>
+            <div class="supp-arrow">→</div>
+            <div class="supp-step">
+              <strong>Rebound</strong>
+              Increased thought frequency post-suppression
+            </div>
+          </div>
+        </div>
+
+        <p>Individuals with OCD place excessive importance on controlling their thoughts and believe that failure to control an unwanted thought has serious consequences. This <strong>inflated importance of mental control</strong> is itself a cognitive appraisal that maintains the disorder.</p>
+
+        <div class="callout callout-key">
+          <strong>Clinical Implication</strong>
+          Rather than helping clients suppress obsessions, CBT aims to change the <em>meaning</em> attributed to intrusive thoughts and reduce the perceived need for mental control. The goal is not thought elimination but changed appraisal of the thoughts.
+        </div>
+      </div>
+
+    </div><!-- /ch3 -->
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script>
+  // ===== TABS =====
+  function switchTab(n, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.chapter-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('ch' + n).classList.add('active');
+    updateTOC();
+    updateProgress(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ===== PROGRESS BAR =====
+  function updateProgress(n) {
+    const pct = { 1: 33, 2: 66, 3: 100 };
+    document.getElementById('progressBar').style.width = pct[n] + '%';
+  }
+
+  // ===== TOC =====
+  const tocDefs = {
+    ch1: [
+      { id: 's1-cycle', label: 'The OCD Paradox' },
+      { id: 's1-dsm', label: 'DSM-5 Diagnosis' },
+      { id: 's1-reclassification', label: 'Reclassification Debate' },
+      { id: 's1-epidemiology', label: 'Epidemiology & Demographics' },
+      { id: 's1-qol', label: 'Quality of Life & Suicidality' },
+      { id: 's1-course', label: 'Course and Outcome' },
+    ],
+    ch2: [
+      { id: 's2-content', label: 'Obsessional Content' },
+      { id: 's2-features', label: 'Core Features of Obsessions' },
+      { id: 's2-normal-abnormal', label: 'Normal vs. Abnormal Obsessions' },
+      { id: 's2-differentiation', label: 'Obsessions vs. Worry & Rumination' },
+    ],
+    ch3: [
+      { id: 's3-behavioral', label: 'Behavioral Compulsions' },
+      { id: 's3-mental', label: 'Mental Compulsions' },
+      { id: 's3-ers', label: 'Excessive Reassurance Seeking' },
+      { id: 's3-avoidance', label: 'Avoidance' },
+      { id: 's3-neutralization', label: 'Neutralization' },
+      { id: 's3-suppression', label: 'Thought Suppression & Control' },
+    ],
+  };
+
+  function updateTOC() {
+    const activePanel = document.querySelector('.chapter-panel.active');
+    const chId = activePanel.id;
+    const items = tocDefs[chId] || [];
+    const nav = document.getElementById('tocNav');
+    nav.innerHTML = '<div class="toc-title">In This Chapter</div>' +
+      items.map(i => `<a href="#${i.id}" onclick="scrollTo('${i.id}'); return false;">${i.label}</a>`).join('');
+  }
+
+  function scrollTo(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 90;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+
+  // ===== SCROLL SPY =====
+  function setupScrollSpy() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+          const link = document.querySelector(`.toc a[href="#${entry.target.id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-10% 0px -70% 0px' });
+    document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+  }
+
+  // ===== SCROLL REVEAL =====
+  function setupReveal() {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('.section').forEach(s => revealObserver.observe(s));
+  }
+
+  // ===== OBS CARD TOGGLE =====
+  function toggleObsCard(card) {
+    const wasExpanded = card.classList.contains('expanded');
+    document.querySelectorAll('.obs-card.expanded').forEach(c => {
+      c.classList.remove('expanded');
+      c.querySelector('.obs-card-toggle').textContent = '▸ See examples';
+    });
+    if (!wasExpanded) {
+      card.classList.add('expanded');
+      card.querySelector('.obs-card-toggle').textContent = '▾ Hide examples';
+    }
+  }
+
+  // ===== INIT =====
+  updateTOC();
+  setupScrollSpy();
+  setupReveal();
+</script>
+</body>
+</html>
